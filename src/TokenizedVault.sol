@@ -74,6 +74,8 @@ contract TokenizedVault is ERC4626 {
 
     function claimYield(address owner, uint256 accumulatedTime) public returns (uint256) {
         uint256 yieldAmount = _calculateYield(owner, accumulatedTime);
+        if (owner != _msgSender() && allowance(owner, _msgSender()) < yieldAmount) revert();
+
         SafeERC20.safeTransfer(_yield, owner, yieldAmount);
 
         _deposits[owner] = block.timestamp;
@@ -81,8 +83,8 @@ contract TokenizedVault is ERC4626 {
     }
 
     function _calculateYield(address owner, uint256 accumulatedTime) internal view returns (uint256) {
-        uint256 daysPassed = (accumulatedTime % 1 days);
-        return daysPassed * balanceOf(owner) * 100 / totalSupply();
+        uint256 daysPassed = (accumulatedTime / 1 days);
+        return daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply();
     }
 
     function deposits(address depositer) public view returns (uint256) {

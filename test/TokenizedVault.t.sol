@@ -149,4 +149,76 @@ contract TokenizedVaultTest is Test {
         vault.safeWithdraw(assetsAmount, maxShares - 1, user1, user1);
         vm.stopPrank();
     }
+
+    function test_SafeRedeem() public {
+        uint256 maxAssetsAmount = asset.balanceOf(user1);
+        uint256 shares = maxAssetsAmount;
+        uint256 timestamp = block.timestamp;
+
+        vm.startPrank(user1);
+        asset.approve(address(vault), maxAssetsAmount);
+        uint256 assets = vault.safeMint(shares, maxAssetsAmount, user1);
+
+        vm.warp(timestamp + 1 days);
+
+        uint256 minAssets = assets;
+        uint256 yieldAmount;
+        (shares, yieldAmount) = vault.safeRedeem(shares, minAssets, user1, user1);
+        vm.stopPrank();
+
+        assertEq(yield.balanceOf(user1), yieldAmount);
+        assertEq(vault.totalSupply(), 0);
+        assertEq(vault.deposits(user1), 0);
+        assertEq(vault.balanceOf(user1), 0);
+        assertEq(asset.balanceOf(user1), assets);
+        assertEq(asset.balanceOf(address(vault)), 0);
+    }
+
+    function test_SafeRedeem_Fail() public {
+        uint256 maxAssetsAmount = asset.balanceOf(user1);
+        uint256 shares = maxAssetsAmount;
+        uint256 timestamp = block.timestamp;
+
+        vm.startPrank(user1);
+        asset.approve(address(vault), maxAssetsAmount);
+        uint256 assets = vault.safeMint(shares, maxAssetsAmount, user1);
+
+        vm.warp(timestamp + 1 days);
+
+        uint256 minAssets = assets;
+        vm.expectRevert(
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Redeem_Slippage.selector, minAssets + 1, assets)
+        );
+        vault.safeRedeem(shares, minAssets + 1, user1, user1);
+        vm.stopPrank();
+    }
+
+    function test_ClaimYield() public {
+        uint256 assetsAmount = asset.balanceOf(user1);
+        uint256 minShares = assetsAmount;
+
+        vm.startPrank(user1);
+        asset.approve(address(vault), assetsAmount);
+        vault.safeDeposit(assetsAmount, minShares, user1);
+
+        vm.warp(1 days);
+
+        assert(vault.claimYield(user1) == 0);
+        vm.stopPrank();
+
+        vm.warp(2 days);
+
+        vm.prank(user2);
+        vm.expectRevert(TokenizedVault.TokenizedVault_Unauthorized.selector);
+        vault.claimYield(user1);
+
+        vm.prank(user1);
+        vault.approve(user2, 1);
+
+        vm.prank(user2);
+        uint256 yieldRewards = vault.claimYield(user1);
+
+        assertEq(yieldRewards, 100e18);
+        assertEq(vault.deposits(user1), 2 days);
+    }
 }

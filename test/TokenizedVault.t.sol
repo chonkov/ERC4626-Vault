@@ -106,4 +106,47 @@ contract TokenizedVaultTest is Test {
         vault.safeMint(shares, maxAssetsAmount + 1, user1);
         vm.stopPrank();
     }
+
+    function test_SafeWithdraw() public {
+        uint256 assetsAmount = asset.balanceOf(user1);
+        uint256 minShares = assetsAmount;
+        uint256 timestamp = block.timestamp;
+
+        vm.startPrank(user1);
+        asset.approve(address(vault), assetsAmount);
+        uint256 shares = vault.safeDeposit(assetsAmount, minShares, user1);
+
+        vm.warp(timestamp + 1 days);
+
+        uint256 maxShares = assetsAmount;
+        uint256 yieldAmount;
+        (shares, yieldAmount) = vault.safeWithdraw(assetsAmount, maxShares, user1, user1);
+        vm.stopPrank();
+
+        assertEq(yield.balanceOf(user1), yieldAmount);
+        assertEq(vault.totalSupply(), 0);
+        assertEq(vault.deposits(user1), 0);
+        assertEq(vault.balanceOf(user1), 0);
+        assertEq(asset.balanceOf(user1), assetsAmount);
+        assertEq(asset.balanceOf(address(vault)), 0);
+    }
+
+    function test_SafeWithdraw_Fail() public {
+        uint256 assetsAmount = asset.balanceOf(user1);
+        uint256 minShares = assetsAmount;
+        uint256 timestamp = block.timestamp;
+
+        vm.startPrank(user1);
+        asset.approve(address(vault), assetsAmount);
+        uint256 shares = vault.safeDeposit(assetsAmount, minShares, user1);
+
+        vm.warp(timestamp + 1 days);
+
+        uint256 maxShares = assetsAmount;
+        vm.expectRevert(
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Withdraw_Slippage.selector, maxShares - 1, shares)
+        );
+        vault.safeWithdraw(assetsAmount, maxShares - 1, user1, user1);
+        vm.stopPrank();
+    }
 }

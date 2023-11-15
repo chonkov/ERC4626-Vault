@@ -75,4 +75,35 @@ contract TokenizedVaultTest is Test {
         vault.safeDeposit(assetsAmount - 1, minShares, user1);
         vm.stopPrank();
     }
+
+    function test_SafeMint() public {
+        uint256 maxAssetsAmount = asset.balanceOf(user1) / 2;
+        uint256 shares = maxAssetsAmount;
+        uint256 timestamp = block.timestamp;
+
+        vm.startPrank(user1);
+        asset.approve(address(vault), shares * 2);
+        uint256 assets = vault.safeMint(shares, maxAssetsAmount, user1);
+        vm.stopPrank();
+
+        assertEq(vault.totalSupply(), assets);
+        assertEq(vault.deposits(user1), timestamp);
+        assertEq(vault.balanceOf(user1), shares);
+        assertEq(asset.balanceOf(user1), 500 ether);
+    }
+
+    function test_SafeMint_Fail() public {
+        uint256 maxAssetsAmount = asset.balanceOf(user1) / 2;
+        uint256 shares = maxAssetsAmount;
+
+        vm.startPrank(user1);
+        asset.approve(address(vault), shares * 2);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                TokenizedVault.TokenizedVault_Mint_Slippage.selector, maxAssetsAmount + 1, maxAssetsAmount
+            )
+        );
+        vault.safeMint(shares, maxAssetsAmount + 1, user1);
+        vm.stopPrank();
+    }
 }

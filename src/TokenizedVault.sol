@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {ERC4626, ERC20, IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol";
+import {ERC4626} from "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol";
+import {ERC20, IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {YieldToken} from "./mock/YieldToken.sol";
 
 contract TokenizedVault is ERC4626 {
+    YieldToken private _yield;
+    mapping(address depositer => uint256 timestamp) _deposits;
+
     error TokenizedVault_Deposit_Slippage(uint256 minExpected, uint256 actual);
     error TokenizedVault_Mint_Slippage(uint256 maxExpected, uint256 actual);
     error TokenizedVault_Withdraw_Slippage(uint256 maxExpected, uint256 actual);
     error TokenizedVault_Redeem_Slippage(uint256 minExpected, uint256 actual);
-
-    YieldToken private _yield;
-    mapping(address depositer => uint256 timestamp) _deposits;
 
     constructor(string memory name_, string memory symbol_, IERC20 asset_, address yield_)
         ERC20(name_, symbol_)
@@ -42,27 +44,45 @@ contract TokenizedVault is ERC4626 {
 
     function safeWithdraw(uint256 assets, uint256 maxShares, address receiver, address owner)
         public
-        returns (uint256)
+        returns (uint256, uint256)
     {
-        uint256 accumulatedTime = _deposits[owner];
+        uint256 accumulatedTime = block.timestamp - _deposits[owner];
+        uint256 yieldAmount = claimYield(owner, accumulatedTime);
         delete _deposits[owner];
 
         uint256 shares = super.withdraw(assets, receiver, owner);
 
         if (shares > maxShares) revert TokenizedVault_Withdraw_Slippage(maxShares, shares);
 
-        return shares;
+        return (shares, yieldAmount);
     }
 
-    function safeRedeem(uint256 shares, uint256 minAssets, address receiver, address owner) public returns (uint256) {
-        uint256 accumulatedTime = _deposits[owner];
+    function safeRedeem(uint256 shares, uint256 minAssets, address receiver, address owner)
+        public
+        returns (uint256, uint256)
+    {
+        uint256 accumulatedTime = block.timestamp - _deposits[owner];
+        uint256 yieldAmount = claimYield(owner, accumulatedTime);
         delete _deposits[owner];
 
         uint256 assets = super.redeem(shares, receiver, owner);
 
         if (assets < minAssets) revert TokenizedVault_Redeem_Slippage(minAssets, shares);
 
-        return shares;
+        return (assets, yieldAmount);
+    }
+
+    function claimYield(address owner, uint256 accumulatedTime) public returns (uint256) {
+        uint256 yieldAmount = _calculateYield(owner, accumulatedTime);
+        SafeERC20.safeTransfer(_yield, owner, yieldAmount);
+
+        _deposits[owner] = block.timestamp;
+        return yieldAmount;
+    }
+
+    function _calculateYield(address owner, uint256 accumulatedTime) internal view returns (uint256) {
+        uint256 daysPassed = (accumulatedTime % 1 days);
+        return daysPassed * balanceOf(owner) * 100 / totalSupply();
     }
 
     function deposits(address depositer) public view returns (uint256) {

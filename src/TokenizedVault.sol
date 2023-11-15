@@ -14,6 +14,7 @@ contract TokenizedVault is ERC4626 {
     error TokenizedVault_Mint_Slippage(uint256 maxExpected, uint256 actual);
     error TokenizedVault_Withdraw_Slippage(uint256 maxExpected, uint256 actual);
     error TokenizedVault_Redeem_Slippage(uint256 minExpected, uint256 actual);
+    error TokenizedVault_Unauthorized();
 
     constructor(string memory name_, string memory symbol_, IERC20 asset_, address yield_)
         ERC20(name_, symbol_)
@@ -46,8 +47,7 @@ contract TokenizedVault is ERC4626 {
         public
         returns (uint256, uint256)
     {
-        uint256 accumulatedTime = block.timestamp - _deposits[owner];
-        uint256 yieldAmount = claimYield(owner, accumulatedTime);
+        uint256 yieldAmount = claimYield(owner);
         delete _deposits[owner];
 
         uint256 shares = super.withdraw(assets, receiver, owner);
@@ -61,8 +61,7 @@ contract TokenizedVault is ERC4626 {
         public
         returns (uint256, uint256)
     {
-        uint256 accumulatedTime = block.timestamp - _deposits[owner];
-        uint256 yieldAmount = claimYield(owner, accumulatedTime);
+        uint256 yieldAmount = claimYield(owner);
         delete _deposits[owner];
 
         uint256 assets = super.redeem(shares, receiver, owner);
@@ -72,10 +71,12 @@ contract TokenizedVault is ERC4626 {
         return (assets, yieldAmount);
     }
 
-    function claimYield(address owner, uint256 accumulatedTime) public returns (uint256) {
-        uint256 yieldAmount = _calculateYield(owner, accumulatedTime);
-        if (owner != _msgSender() && allowance(owner, _msgSender()) < yieldAmount) revert();
+    function claimYield(address owner) public returns (uint256) {
+        // Approved addresses can claim yield for an account -> on line 83, '_deposits' can be potentailly abused by an approved address
+        if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
 
+        uint256 accumulatedTime = block.timestamp - _deposits[owner];
+        uint256 yieldAmount = _calculateYield(owner, accumulatedTime);
         SafeERC20.safeTransfer(_yield, owner, yieldAmount);
 
         _deposits[owner] = block.timestamp;

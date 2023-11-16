@@ -125,7 +125,7 @@ contract TokenizedVaultTest is Test {
 
         assertEq(yield.balanceOf(user1), yieldAmount);
         assertEq(vault.totalSupply(), 0);
-        assertEq(vault.deposits(user1), 0);
+        assertEq(vault.deposits(user1), timestamp + 1 days);
         assertEq(vault.balanceOf(user1), 0);
         assertEq(asset.balanceOf(user1), assetsAmount);
         assertEq(asset.balanceOf(address(vault)), 0);
@@ -168,7 +168,7 @@ contract TokenizedVaultTest is Test {
 
         assertEq(yield.balanceOf(user1), yieldAmount);
         assertEq(vault.totalSupply(), 0);
-        assertEq(vault.deposits(user1), 0);
+        assertEq(vault.deposits(user1), timestamp + 1 days);
         assertEq(vault.balanceOf(user1), 0);
         assertEq(asset.balanceOf(user1), assets);
         assertEq(asset.balanceOf(address(vault)), 0);

@@ -48,7 +48,7 @@ contract TokenizedVault is ERC4626 {
         returns (uint256, uint256)
     {
         uint256 yieldAmount = claimYield(owner);
-        delete _deposits[owner];
+        //   delete _deposits[owner];
 
         uint256 shares = super.withdraw(assets, receiver, owner);
 
@@ -62,7 +62,7 @@ contract TokenizedVault is ERC4626 {
         returns (uint256, uint256)
     {
         uint256 yieldAmount = claimYield(owner);
-        delete _deposits[owner];
+        //   delete _deposits[owner];
 
         uint256 assets = super.redeem(shares, receiver, owner);
 
@@ -72,18 +72,21 @@ contract TokenizedVault is ERC4626 {
     }
 
     function claimYield(address owner) public returns (uint256) {
-        // Approved addresses can claim yield for an account -> on line 83, '_deposits' can be potentailly abused by an approved address
+        // Approved addresses can claim yield for an account -> on line 81, '_deposits' can be potentailly abused by an approved address
         if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
 
         uint256 accumulatedTime = block.timestamp - _deposits[owner];
         uint256 yieldAmount = _calculateYield(owner, accumulatedTime);
-        SafeERC20.safeTransfer(_yield, owner, yieldAmount);
 
         _deposits[owner] = block.timestamp;
+
+        SafeERC20.safeTransfer(_yield, owner, yieldAmount);
+
         return yieldAmount;
     }
 
     function _calculateYield(address owner, uint256 accumulatedTime) internal view returns (uint256) {
+        // Depending on the amount of shares held by an owner, yield can vary. Max per day is 100 tokens if owner holds 100% of the vault's shares
         uint256 daysPassed = (accumulatedTime / 1 days);
         return daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply();
     }

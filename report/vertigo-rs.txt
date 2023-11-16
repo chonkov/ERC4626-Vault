@@ -1,0 +1,269 @@
+Mutation testing report:
+Number of mutations:    24
+Killed:                 12 / 24
+
+Mutations:
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 28
+    Result: Killed
+    Original line:
+                 if (minShares > shares) revert TokenizedVault_Deposit_Slippage(minShares, shares);
+
+    Mutated line:
+                 if (minShares >= shares) revert TokenizedVault_Deposit_Slippage(minShares, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 38
+    Result: Killed
+    Original line:
+                 if (maxAssets > assets) revert TokenizedVault_Mint_Slippage(maxAssets, shares);
+
+    Mutated line:
+                 if (maxAssets >= assets) revert TokenizedVault_Mint_Slippage(maxAssets, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 54
+    Result: Killed
+    Original line:
+                 if (shares > maxShares) revert TokenizedVault_Withdraw_Slippage(maxShares, shares);
+
+    Mutated line:
+                 if (shares >= maxShares) revert TokenizedVault_Withdraw_Slippage(maxShares, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 68
+    Result: Killed
+    Original line:
+                 if (assets < minAssets) revert TokenizedVault_Redeem_Slippage(minAssets, shares);
+
+    Mutated line:
+                 if (assets <= minAssets) revert TokenizedVault_Redeem_Slippage(minAssets, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 75
+    Result: Killed
+    Original line:
+                 if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
+
+    Mutated line:
+                 if (owner != _msgSender() && allowance(owner, _msgSender()) != 0) revert TokenizedVault_Unauthorized();
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 28
+    Result: Killed
+    Original line:
+                 if (minShares > shares) revert TokenizedVault_Deposit_Slippage(minShares, shares);
+
+    Mutated line:
+                 if (minShares <= shares) revert TokenizedVault_Deposit_Slippage(minShares, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 38
+    Result: Killed
+    Original line:
+                 if (maxAssets > assets) revert TokenizedVault_Mint_Slippage(maxAssets, shares);
+
+    Mutated line:
+                 if (maxAssets <= assets) revert TokenizedVault_Mint_Slippage(maxAssets, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 54
+    Result: Killed
+    Original line:
+                 if (shares > maxShares) revert TokenizedVault_Withdraw_Slippage(maxShares, shares);
+
+    Mutated line:
+                 if (shares <= maxShares) revert TokenizedVault_Withdraw_Slippage(maxShares, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 68
+    Result: Killed
+    Original line:
+                 if (assets < minAssets) revert TokenizedVault_Redeem_Slippage(minAssets, shares);
+
+    Mutated line:
+                 if (assets >= minAssets) revert TokenizedVault_Redeem_Slippage(minAssets, shares);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 75
+    Result: Killed
+    Original line:
+                 if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
+
+    Mutated line:
+                 if (owner == _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 75
+    Result: Killed
+    Original line:
+                 if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
+
+    Mutated line:
+                 if (owner != _msgSender() && allowance(owner, _msgSender()) != 0) revert TokenizedVault_Unauthorized();
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 77
+    Result: Killed
+    Original line:
+                 uint256 accumulatedTime = block.timestamp - _deposits[owner];
+
+    Mutated line:
+                 uint256 accumulatedTime = block.timestamp + _deposits[owner];
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 86
+    Result: Error
+    Original line:
+                 uint256 daysPassed = (accumulatedTime / 1 days);
+
+    Mutated line:
+                 uint256 daysPassed = ( * umulatedTime / 1 days);
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 87
+    Result: Error
+    Original line:
+                 return daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply();
+
+    Mutated line:
+                 return daysPassed * balanceOf(owne * * 100 * 1e18 / totalSupply();
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 87
+    Result: Error
+    Original line:
+                 return daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply();
+
+    Mutated line:
+                 return daysPassed * balance / owner) * 100 * 1e18 / totalSupply();
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 87
+    Result: Error
+    Original line:
+                 return daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply();
+
+    Mutated line:
+                 return daysPassed * b / nceOf(owner) * 100 * 1e18 / totalSupply();
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 87
+    Result: Error
+    Original line:
+                 return daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply();
+
+    Mutated line:
+                 re / n daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply();
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 28
+    Result: Error
+    Original line:
+                 if (minShares > shares) revert TokenizedVault_Deposit_Slippage(minShares, shares);
+
+    Mutated line:
+                 if (minShares > shares) revert 
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 38
+    Result: Error
+    Original line:
+                 if (maxAssets > assets) revert TokenizedVault_Mint_Slippage(maxAssets, shares);
+
+    Mutated line:
+                 if (maxAssets > assets) revert 
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 54
+    Result: Error
+    Original line:
+                 if (shares > maxShares) revert TokenizedVault_Withdraw_Slippage(maxShares, shares);
+
+    Mutated line:
+                 if (shares > maxShares) revert 
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 68
+    Result: Error
+    Original line:
+                 if (assets < minAssets) revert TokenizedVault_Redeem_Slippage(minAssets, shares);
+
+    Mutated line:
+                 if (assets < minAssets) revert 
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 75
+    Result: Error
+    Original line:
+                 if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
+
+    Mutated line:
+                 if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert 
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 19
+    Result: Error
+    Original line:
+                 ERC20(name_, symbol_)
+
+    Mutated line:
+                 
+
+
+Mutation:
+    File: /home/georgi/VisualStudioCode/0xFusion-Task/src/TokenizedVault.sol
+    Line nr: 20
+    Result: Error
+    Original line:
+                 ERC4626(asset_)
+
+    Mutated line:
+                 
+
+

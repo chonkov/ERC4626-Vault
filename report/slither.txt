@@ -1,0 +1,332 @@
+✅
+INFO:Detectors:
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) has bitwise-xor operator ^ instead of the exponentiation operator **: 
+         - inverse = (3 * denominator) ^ 2 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#184)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-exponentiation
+
+❌ - Fixed
+INFO:Detectors:
+Reentrancy in TokenizedVault.safeRedeem(uint256,uint256,address,address) (src/TokenizedVault.sol#60-72):
+        External calls:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#64)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_yield,owner,yieldAmount) (src/TokenizedVault.sol#80)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#64)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        State variables written after the call(s):
+        - delete _deposits[owner] (src/TokenizedVault.sol#65)
+        TokenizedVault._deposits (src/TokenizedVault.sol#11) can be used in cross function reentrancies:
+        - TokenizedVault.claimYield(address) (src/TokenizedVault.sol#74-84)
+        - TokenizedVault.deposits(address) (src/TokenizedVault.sol#91-93)
+        - TokenizedVault.safeDeposit(uint256,uint256,address) (src/TokenizedVault.sol#26-34)
+        - TokenizedVault.safeMint(uint256,uint256,address) (src/TokenizedVault.sol#36-44)
+        - TokenizedVault.safeRedeem(uint256,uint256,address,address) (src/TokenizedVault.sol#60-72)
+        - TokenizedVault.safeWithdraw(uint256,uint256,address,address) (src/TokenizedVault.sol#46-58)
+Reentrancy in TokenizedVault.safeRedeem(uint256,uint256,address,address) (src/TokenizedVault.sol#60-72):
+        External calls:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#64)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_yield,owner,yieldAmount) (src/TokenizedVault.sol#80)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_asset,receiver,assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#305)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#64)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        State variables written after the call(s):
+        - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+                - _allowances[owner][spender] = value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#291)
+        ERC20._allowances (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#37) can be used in cross function reentrancies:
+        - ERC20._approve(address,address,uint256,bool) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#284-295)
+        - ERC20.allowance(address,address) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#118-120)
+        - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+                - _balances[from] = fromBalance - value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#199)
+                - _balances[to] += value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#211)
+        ERC20._balances (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#35) can be used in cross function reentrancies:
+        - ERC20._update(address,address,uint256) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#188-216)
+        - ERC20.balanceOf(address) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#97-99)
+        - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+                - _totalSupply += value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#191)
+                - _totalSupply -= value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#206)
+        ERC20._totalSupply (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#39) can be used in cross function reentrancies:
+        - ERC20._update(address,address,uint256) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#188-216)
+        - ERC20.totalSupply() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#90-92)
+Reentrancy in TokenizedVault.safeWithdraw(uint256,uint256,address,address) (src/TokenizedVault.sol#46-58):
+        External calls:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#50)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_yield,owner,yieldAmount) (src/TokenizedVault.sol#80)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#50)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        State variables written after the call(s):
+        - delete _deposits[owner] (src/TokenizedVault.sol#51)
+        TokenizedVault._deposits (src/TokenizedVault.sol#11) can be used in cross function reentrancies:
+        - TokenizedVault.claimYield(address) (src/TokenizedVault.sol#74-84)
+        - TokenizedVault.deposits(address) (src/TokenizedVault.sol#91-93)
+        - TokenizedVault.safeDeposit(uint256,uint256,address) (src/TokenizedVault.sol#26-34)
+        - TokenizedVault.safeMint(uint256,uint256,address) (src/TokenizedVault.sol#36-44)
+        - TokenizedVault.safeRedeem(uint256,uint256,address,address) (src/TokenizedVault.sol#60-72)
+        - TokenizedVault.safeWithdraw(uint256,uint256,address,address) (src/TokenizedVault.sol#46-58)
+Reentrancy in TokenizedVault.safeWithdraw(uint256,uint256,address,address) (src/TokenizedVault.sol#46-58):
+        External calls:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#50)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_yield,owner,yieldAmount) (src/TokenizedVault.sol#80)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_asset,receiver,assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#305)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#50)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        State variables written after the call(s):
+        - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+                - _allowances[owner][spender] = value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#291)
+        ERC20._allowances (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#37) can be used in cross function reentrancies:
+        - ERC20._approve(address,address,uint256,bool) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#284-295)
+        - ERC20.allowance(address,address) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#118-120)
+        - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+                - _balances[from] = fromBalance - value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#199)
+                - _balances[to] += value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#211)
+        ERC20._balances (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#35) can be used in cross function reentrancies:
+        - ERC20._update(address,address,uint256) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#188-216)
+        - ERC20.balanceOf(address) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#97-99)
+        - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+                - _totalSupply += value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#191)
+                - _totalSupply -= value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#206)
+        ERC20._totalSupply (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#39) can be used in cross function reentrancies:
+        - ERC20._update(address,address,uint256) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#188-216)
+        - ERC20.totalSupply() (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#90-92)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities
+
+✅
+INFO:Detectors:
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+        - inverse = (3 * denominator) ^ 2 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#184)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+        - inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#188)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+        - inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#189)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+        - inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#190)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+        - inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#191)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+        - inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#192)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - denominator = denominator / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#169)
+        - inverse *= 2 - denominator * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#193)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) performs a multiplication on the result of a division:
+        - prod0 = prod0 / twos (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#172)
+        - result = prod0 * inverse (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#199)
+TokenizedVault._calculateYield(address,uint256) (src/TokenizedVault.sol#86-89) performs a multiplication on the result of a division:
+        - daysPassed = (accumulatedTime / 86400) (src/TokenizedVault.sol#87)
+        - daysPassed * balanceOf(owner) * 100 * 1e18 / totalSupply() (src/TokenizedVault.sol#88)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#divide-before-multiply
+
+✅
+INFO:Detectors:
+Reentrancy in TokenizedVault.claimYield(address) (src/TokenizedVault.sol#74-84):
+        External calls:
+        - SafeERC20.safeTransfer(_yield,owner,yieldAmount) (src/TokenizedVault.sol#80)
+        State variables written after the call(s):
+        - _deposits[owner] = block.timestamp (src/TokenizedVault.sol#82)
+        TokenizedVault._deposits (src/TokenizedVault.sol#11) can be used in cross function reentrancies:
+        - TokenizedVault.claimYield(address) (src/TokenizedVault.sol#74-84)
+        - TokenizedVault.deposits(address) (src/TokenizedVault.sol#91-93)
+        - TokenizedVault.safeDeposit(uint256,uint256,address) (src/TokenizedVault.sol#26-34)
+        - TokenizedVault.safeMint(uint256,uint256,address) (src/TokenizedVault.sol#36-44)
+        - TokenizedVault.safeRedeem(uint256,uint256,address,address) (src/TokenizedVault.sol#60-72)
+        - TokenizedVault.safeWithdraw(uint256,uint256,address,address) (src/TokenizedVault.sol#46-58)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-1
+
+✅
+INFO:Detectors:
+Reentrancy in ERC4626._deposit(address,address,uint256,uint256) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#273-285):
+        External calls:
+        - SafeERC20.safeTransferFrom(_asset,caller,address(this),assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#281)
+        State variables written after the call(s):
+        - _mint(receiver,shares) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#282)
+                - _balances[from] = fromBalance - value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#199)
+                - _balances[to] += value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#211)
+        - _mint(receiver,shares) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#282)
+                - _totalSupply += value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#191)
+                - _totalSupply -= value (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#206)
+Reentrancy in TokenizedVault.safeDeposit(uint256,uint256,address) (src/TokenizedVault.sol#26-34):
+        External calls:
+        - shares = super.deposit(assets,receiver) (src/TokenizedVault.sol#27)
+                - SafeERC20.safeTransferFrom(_asset,caller,address(this),assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#281)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - shares = super.deposit(assets,receiver) (src/TokenizedVault.sol#27)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        State variables written after the call(s):
+        - _deposits[receiver] = block.timestamp (src/TokenizedVault.sol#31)
+Reentrancy in TokenizedVault.safeMint(uint256,uint256,address) (src/TokenizedVault.sol#36-44):
+        External calls:
+        - assets = super.mint(shares,receiver) (src/TokenizedVault.sol#37)
+                - SafeERC20.safeTransferFrom(_asset,caller,address(this),assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#281)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - assets = super.mint(shares,receiver) (src/TokenizedVault.sol#37)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        State variables written after the call(s):
+        - _deposits[receiver] = block.timestamp (src/TokenizedVault.sol#41)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-2
+
+✅
+INFO:Detectors:
+Reentrancy in ERC4626._deposit(address,address,uint256,uint256) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#273-285):
+        External calls:
+        - SafeERC20.safeTransferFrom(_asset,caller,address(this),assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#281)
+        Event emitted after the call(s):
+        - Deposit(caller,receiver,assets,shares) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#284)
+        - Transfer(from,to,value) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#215)
+                - _mint(receiver,shares) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#282)
+Reentrancy in ERC4626._withdraw(address,address,address,uint256,uint256) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#290-308):
+        External calls:
+        - SafeERC20.safeTransfer(_asset,receiver,assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#305)
+        Event emitted after the call(s):
+        - Withdraw(caller,receiver,owner,assets,shares) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#307)
+Reentrancy in TokenizedVault.safeRedeem(uint256,uint256,address,address) (src/TokenizedVault.sol#60-72):
+        External calls:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#64)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_yield,owner,yieldAmount) (src/TokenizedVault.sol#80)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_asset,receiver,assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#305)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#64)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        Event emitted after the call(s):
+        - Approval(owner,spender,value) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#293)
+                - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+        - Transfer(from,to,value) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#215)
+                - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+        - Withdraw(caller,receiver,owner,assets,shares) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#307)
+                - assets = super.redeem(shares,receiver,owner) (src/TokenizedVault.sol#67)
+Reentrancy in TokenizedVault.safeWithdraw(uint256,uint256,address,address) (src/TokenizedVault.sol#46-58):
+        External calls:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#50)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_yield,owner,yieldAmount) (src/TokenizedVault.sol#80)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+                - returndata = address(token).functionCall(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#96)
+                - SafeERC20.safeTransfer(_asset,receiver,assets) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#305)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        External calls sending eth:
+        - yieldAmount = claimYield(owner) (src/TokenizedVault.sol#50)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+                - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+        Event emitted after the call(s):
+        - Approval(owner,spender,value) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#293)
+                - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+        - Transfer(from,to,value) (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#215)
+                - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+        - Withdraw(caller,receiver,owner,assets,shares) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#307)
+                - shares = super.withdraw(assets,receiver,owner) (src/TokenizedVault.sol#53)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#reentrancy-vulnerabilities-3
+
+✅
+INFO:Detectors:
+Address._revert(bytes) (lib/openzeppelin-contracts/contracts/utils/Address.sol#146-158) uses assembly
+        - INLINE ASM (lib/openzeppelin-contracts/contracts/utils/Address.sol#151-154)
+Math.mulDiv(uint256,uint256,uint256) (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#123-202) uses assembly
+        - INLINE ASM (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#130-133)
+        - INLINE ASM (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#154-161)
+        - INLINE ASM (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#167-176)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage
+
+✅
+INFO:Detectors:
+Different versions of Solidity are used:
+        - Version used: ['0.8.21', '^0.8.13', '^0.8.20']
+        - 0.8.21 (src/TokenizedVault.sol#2)
+        - 0.8.21 (src/mock/AssetToken.sol#2)
+        - 0.8.21 (src/mock/YieldToken.sol#2)
+        - ^0.8.13 (src/Counter.sol#2)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/access/Ownable.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC4626.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#3)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Address.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Context.sol#4)
+        - ^0.8.20 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#4)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#different-pragma-directives-are-used
+
+✅
+INFO:Detectors:
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/access/Ownable.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/IERC4626.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/interfaces/draft-IERC6093.sol#3) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Metadata.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Address.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/utils/Context.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.20 (lib/openzeppelin-contracts/contracts/utils/math/Math.sol#4) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version^0.8.13 (src/Counter.sol#2) allows old versions
+Pragma version0.8.21 (src/TokenizedVault.sol#2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version0.8.21 (src/mock/AssetToken.sol#2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+Pragma version0.8.21 (src/mock/YieldToken.sol#2) necessitates a version too recent to be trusted. Consider deploying with 0.8.18.
+solc-0.8.21 is not recommended for deployment
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#incorrect-versions-of-solidity
+
+✅
+INFO:Detectors:
+Low level call in ERC4626._tryGetAssetDecimals(IERC20) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#86-96):
+        - (success,encodedDecimals) = address(asset_).staticcall(abi.encodeCall(IERC20Metadata.decimals,())) (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol#87-88)
+Low level call in SafeERC20._callOptionalReturnBool(IERC20,bytes) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#110-117):
+        - (success,returndata) = address(token).call(data) (lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol#115)
+Low level call in Address.sendValue(address,uint256) (lib/openzeppelin-contracts/contracts/utils/Address.sol#41-50):
+        - (success) = recipient.call{value: amount}() (lib/openzeppelin-contracts/contracts/utils/Address.sol#46)
+Low level call in Address.functionCallWithValue(address,bytes,uint256) (lib/openzeppelin-contracts/contracts/utils/Address.sol#83-89):
+        - (success,returndata) = target.call{value: value}(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#87)
+Low level call in Address.functionStaticCall(address,bytes) (lib/openzeppelin-contracts/contracts/utils/Address.sol#95-98):
+        - (success,returndata) = target.staticcall(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#96)
+Low level call in Address.functionDelegateCall(address,bytes) (lib/openzeppelin-contracts/contracts/utils/Address.sol#104-107):
+        - (success,returndata) = target.delegatecall(data) (lib/openzeppelin-contracts/contracts/utils/Address.sol#105)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
+
+✅
+INFO:Detectors:
+Function IERC20Permit.DOMAIN_SEPARATOR() (lib/openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol#89) is not in mixedCase
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#conformance-to-solidity-naming-conventions
+✅
+INFO:Detectors:
+TokenizedVault._yield (src/TokenizedVault.sol#10) should be immutable 
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#state-variables-that-could-be-declared-immutable

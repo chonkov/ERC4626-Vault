@@ -10,10 +10,10 @@ contract TokenizedVault is ERC4626 {
     YieldToken private _yield;
     mapping(address depositer => uint256 timestamp) _deposits;
 
-    error TokenizedVault_Deposit_Slippage(uint256 minExpected, uint256 actual);
-    error TokenizedVault_Mint_Slippage(uint256 maxExpected, uint256 actual);
-    error TokenizedVault_Withdraw_Slippage(uint256 maxExpected, uint256 actual);
-    error TokenizedVault_Redeem_Slippage(uint256 minExpected, uint256 actual);
+    error TokenizedVault_Deposit_Exceeded(uint256 minExpected, uint256 actual);
+    error TokenizedVault_Mint_Exceeded(uint256 maxExpected, uint256 actual);
+    error TokenizedVault_Withdraw_Exceeded(uint256 maxExpected, uint256 actual);
+    error TokenizedVault_Redeem_Exceeded(uint256 minExpected, uint256 actual);
     error TokenizedVault_Unauthorized();
 
     constructor(string memory name_, string memory symbol_, IERC20 asset_, address yield_)
@@ -26,7 +26,7 @@ contract TokenizedVault is ERC4626 {
     function safeDeposit(uint256 assets, uint256 minShares, address receiver) public returns (uint256) {
         uint256 shares = super.deposit(assets, receiver);
 
-        if (minShares > shares) revert TokenizedVault_Deposit_Slippage(minShares, shares);
+        if (minShares > shares) revert TokenizedVault_Deposit_Exceeded(minShares, shares);
 
         _deposits[receiver] = block.timestamp;
 
@@ -36,7 +36,7 @@ contract TokenizedVault is ERC4626 {
     function safeMint(uint256 shares, uint256 maxAssets, address receiver) public returns (uint256) {
         uint256 assets = super.mint(shares, receiver);
 
-        if (maxAssets > assets) revert TokenizedVault_Mint_Slippage(maxAssets, shares);
+        if (maxAssets > assets) revert TokenizedVault_Mint_Exceeded(maxAssets, shares);
 
         _deposits[receiver] = block.timestamp;
 
@@ -52,7 +52,7 @@ contract TokenizedVault is ERC4626 {
 
         uint256 shares = super.withdraw(assets, receiver, owner);
 
-        if (shares > maxShares) revert TokenizedVault_Withdraw_Slippage(maxShares, shares);
+        if (shares > maxShares) revert TokenizedVault_Withdraw_Exceeded(maxShares, shares);
 
         return (shares, yieldAmount);
     }
@@ -66,13 +66,13 @@ contract TokenizedVault is ERC4626 {
 
         uint256 assets = super.redeem(shares, receiver, owner);
 
-        if (assets < minAssets) revert TokenizedVault_Redeem_Slippage(minAssets, shares);
+        if (assets < minAssets) revert TokenizedVault_Redeem_Exceeded(minAssets, shares);
 
         return (assets, yieldAmount);
     }
 
     function claimYield(address owner) public returns (uint256) {
-        // Approved addresses can claim yield for an account -> on line 81, '_deposits' can be potentailly abused by an approved address
+        // Approved addresses can claim yield for an account -> on line 81, `_deposits` can be potentailly abused by an approved address
         if (owner != _msgSender() && allowance(owner, _msgSender()) == 0) revert TokenizedVault_Unauthorized();
 
         uint256 accumulatedTime = block.timestamp - _deposits[owner];
@@ -80,6 +80,11 @@ contract TokenizedVault is ERC4626 {
 
         _deposits[owner] = block.timestamp;
 
+        // `_yield` should not be ERC777, otherwise re-entrancy is possible
+        // Regular ERC20 transfer are not re-entrant
+        // Potentially the following code can be used instead of `safeTransfer`, but then tokens like USDT can not be used as yield
+        //   bool success = _yield.transfer(owner, yieldAmount);
+        //   if (!success) revert();
         SafeERC20.safeTransfer(_yield, owner, yieldAmount);
 
         return yieldAmount;

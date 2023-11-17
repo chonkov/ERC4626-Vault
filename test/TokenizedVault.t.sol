@@ -70,7 +70,7 @@ contract TokenizedVaultTest is Test {
         vm.startPrank(user1);
         asset.approve(address(vault), assetsAmount);
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Deposit_Slippage.selector, minShares, minShares - 1)
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Deposit_Exceeded.selector, minShares, minShares - 1)
         );
         vault.safeDeposit(assetsAmount - 1, minShares, user1);
         vm.stopPrank();
@@ -100,7 +100,7 @@ contract TokenizedVaultTest is Test {
         asset.approve(address(vault), shares * 2);
         vm.expectRevert(
             abi.encodeWithSelector(
-                TokenizedVault.TokenizedVault_Mint_Slippage.selector, maxAssetsAmount + 1, maxAssetsAmount
+                TokenizedVault.TokenizedVault_Mint_Exceeded.selector, maxAssetsAmount + 1, maxAssetsAmount
             )
         );
         vault.safeMint(shares, maxAssetsAmount + 1, user1);
@@ -144,7 +144,7 @@ contract TokenizedVaultTest is Test {
 
         uint256 maxShares = assetsAmount;
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Withdraw_Slippage.selector, maxShares - 1, shares)
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Withdraw_Exceeded.selector, maxShares - 1, shares)
         );
         vault.safeWithdraw(assetsAmount, maxShares - 1, user1, user1);
         vm.stopPrank();
@@ -187,7 +187,7 @@ contract TokenizedVaultTest is Test {
 
         uint256 minAssets = assets;
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Redeem_Slippage.selector, minAssets + 1, assets)
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Redeem_Exceeded.selector, minAssets + 1, assets)
         );
         vault.safeRedeem(shares, minAssets + 1, user1, user1);
         vm.stopPrank();

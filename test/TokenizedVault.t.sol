@@ -8,12 +8,12 @@ import {AssetToken} from "../src/mock/AssetToken.sol";
 import {YieldToken} from "../src/mock/YieldToken.sol";
 
 contract TokenizedVaultTest is Test {
-    string public constant VAULT_NAME = "Tokenized Vault Token"; // Share's token `name`
-    string public constant ASSET_NAME = "Mock Token"; // Asset's token `name`
-    string public constant YIELD_NAME = "Dai";
-    string public constant VAULT_SYMBOL = "TVT"; // Share's token `sumbol`
-    string public constant ASSET_SYMBOL = "MTKN"; // Asset's token `sumbol`
-    string public constant YIELD_SYMBOL = "DAI";
+    string public constant VAULT_NAME = "Georgi Vault Dai"; // Share's token `name`
+    string public constant ASSET_NAME = "Dai"; // Asset's token `name`
+    string public constant YIELD_NAME = "Georgi Token";
+    string public constant VAULT_SYMBOL = "gvDAI"; // Share's token `symbol`
+    string public constant ASSET_SYMBOL = "DAI"; // Asset's token `symbol`
+    string public constant YIELD_SYMBOL = "GT";
     AssetToken public asset;
     YieldToken public yield;
     TokenizedVault public vault;
@@ -35,7 +35,7 @@ contract TokenizedVaultTest is Test {
     function test_SetUp() public {
         assertEq(vault.name(), VAULT_NAME);
         assertEq(vault.symbol(), VAULT_SYMBOL);
-        assertEq(vault.decimals(), 18);
+        assertEq(vault.decimals(), 21);
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.totalAssets(), 0);
         assertEq(vault.asset(), address(asset));
@@ -47,117 +47,117 @@ contract TokenizedVaultTest is Test {
     }
 
     function test_SafeDeposit() public {
-        uint256 assetsAmount = asset.balanceOf(user1);
-        uint256 minShares = assetsAmount;
+        uint256 assets = asset.balanceOf(user1);
+        uint256 minShares = assets * 1_000; // * by 1000 because of `_decimalsOffset()`
         uint256 timestamp = block.timestamp;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), assetsAmount);
-        uint256 shares = vault.safeDeposit(assetsAmount, minShares, user1);
+        asset.approve(address(vault), assets);
+        uint256 shares = vault.safeDeposit(assets, minShares, user1);
         vm.stopPrank();
 
-        assertEq(vault.totalSupply(), assetsAmount);
+        assertEq(vault.totalSupply(), assets * 1_000);
         assertEq(vault.deposits(user1), timestamp);
         assertEq(vault.balanceOf(user1), shares);
         assertEq(asset.balanceOf(user1), 0);
-        assertEq(asset.balanceOf(address(vault)), assetsAmount);
+        assertEq(asset.balanceOf(address(vault)), assets);
     }
 
     function test_SafeDeposit_Fail() public {
-        uint256 assetsAmount = asset.balanceOf(user1);
-        uint256 minShares = assetsAmount;
+        uint256 assets = asset.balanceOf(user1);
+        uint256 minShares = assets * 1_000;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), assetsAmount);
+        asset.approve(address(vault), assets);
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Deposit_Exceeded.selector, minShares, minShares - 1)
+            abi.encodeWithSelector(
+                TokenizedVault.TokenizedVault_Deposit_Exceeded.selector, minShares, minShares - 1_000
+            )
         );
-        vault.safeDeposit(assetsAmount - 1, minShares, user1);
+        vault.safeDeposit(assets - 1, minShares, user1);
         vm.stopPrank();
     }
 
     function test_SafeMint() public {
-        uint256 maxAssetsAmount = asset.balanceOf(user1) / 2;
-        uint256 shares = maxAssetsAmount;
+        uint256 maxAssets = asset.balanceOf(user1);
+        uint256 shares = maxAssets * 1_000;
         uint256 timestamp = block.timestamp;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), shares * 2);
-        uint256 assets = vault.safeMint(shares, maxAssetsAmount, user1);
+        asset.approve(address(vault), maxAssets);
+        uint256 assets = vault.safeMint(shares, maxAssets, user1);
         vm.stopPrank();
 
-        assertEq(vault.totalSupply(), assets);
+        assertEq(vault.totalSupply(), assets * 1_000);
         assertEq(vault.deposits(user1), timestamp);
         assertEq(vault.balanceOf(user1), shares);
-        assertEq(asset.balanceOf(user1), 500 ether);
+        assertEq(asset.balanceOf(user1), 0);
     }
 
     function test_SafeMint_Fail() public {
-        uint256 maxAssetsAmount = asset.balanceOf(user1) / 2;
-        uint256 shares = maxAssetsAmount;
+        uint256 maxAssets = asset.balanceOf(user1); // 1_000
+        uint256 shares = maxAssets * 1_000; // 1_000_000
 
         vm.startPrank(user1);
-        asset.approve(address(vault), shares * 2);
+        asset.approve(address(vault), maxAssets);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                TokenizedVault.TokenizedVault_Mint_Exceeded.selector, maxAssetsAmount + 1, maxAssetsAmount
-            )
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Mint_Exceeded.selector, maxAssets - 1, maxAssets)
         );
-        vault.safeMint(shares, maxAssetsAmount + 1, user1);
+        vault.safeMint(shares, maxAssets - 1, user1);
         vm.stopPrank();
     }
 
     function test_SafeWithdraw() public {
-        uint256 assetsAmount = asset.balanceOf(user1);
-        uint256 minShares = assetsAmount;
+        uint256 assets = asset.balanceOf(user1);
+        uint256 minShares = assets * 1_000;
         uint256 timestamp = block.timestamp;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), assetsAmount);
-        uint256 shares = vault.safeDeposit(assetsAmount, minShares, user1);
+        asset.approve(address(vault), assets);
+        uint256 shares = vault.safeDeposit(assets, minShares, user1);
 
         vm.warp(timestamp + 1 days);
 
-        uint256 maxShares = assetsAmount;
+        uint256 maxShares = minShares;
         uint256 yieldAmount;
-        (shares, yieldAmount) = vault.safeWithdraw(assetsAmount, maxShares, user1, user1);
+        (shares, yieldAmount) = vault.safeWithdraw(assets, maxShares, user1, user1);
         vm.stopPrank();
 
         assertEq(yield.balanceOf(user1), yieldAmount);
         assertEq(vault.totalSupply(), 0);
         assertEq(vault.deposits(user1), timestamp + 1 days);
         assertEq(vault.balanceOf(user1), 0);
-        assertEq(asset.balanceOf(user1), assetsAmount);
+        assertEq(asset.balanceOf(user1), assets);
         assertEq(asset.balanceOf(address(vault)), 0);
     }
 
     function test_SafeWithdraw_Fail() public {
-        uint256 assetsAmount = asset.balanceOf(user1);
-        uint256 minShares = assetsAmount;
+        uint256 assets = asset.balanceOf(user1);
+        uint256 minShares = assets * 1_000;
         uint256 timestamp = block.timestamp;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), assetsAmount);
-        uint256 shares = vault.safeDeposit(assetsAmount, minShares, user1);
+        asset.approve(address(vault), assets);
+        uint256 shares = vault.safeDeposit(assets, minShares, user1);
 
         vm.warp(timestamp + 1 days);
 
-        uint256 maxShares = assetsAmount;
+        uint256 maxShares = shares - 1; // 999_999
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Withdraw_Exceeded.selector, maxShares - 1, shares)
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Withdraw_Exceeded.selector, maxShares, maxShares)
         );
-        vault.safeWithdraw(assetsAmount, maxShares - 1, user1, user1);
+        vault.safeWithdraw(assets, maxShares, user1, user1);
         vm.stopPrank();
     }
 
     function test_SafeRedeem() public {
-        uint256 maxAssetsAmount = asset.balanceOf(user1);
-        uint256 shares = maxAssetsAmount;
+        uint256 maxAssets = asset.balanceOf(user1);
+        uint256 shares = maxAssets * 1_000;
         uint256 timestamp = block.timestamp;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), maxAssetsAmount);
-        uint256 assets = vault.safeMint(shares, maxAssetsAmount, user1);
+        asset.approve(address(vault), maxAssets);
+        uint256 assets = vault.safeMint(shares, maxAssets, user1);
 
         vm.warp(timestamp + 1 days);
 
@@ -175,31 +175,33 @@ contract TokenizedVaultTest is Test {
     }
 
     function test_SafeRedeem_Fail() public {
-        uint256 maxAssetsAmount = asset.balanceOf(user1);
-        uint256 shares = maxAssetsAmount;
+        uint256 maxAssets = asset.balanceOf(user1);
+        uint256 shares = maxAssets * 1_000;
         uint256 timestamp = block.timestamp;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), maxAssetsAmount);
-        uint256 assets = vault.safeMint(shares, maxAssetsAmount, user1);
+        asset.approve(address(vault), maxAssets);
+        uint256 assets = vault.safeMint(shares, maxAssets, user1);
+
+        assertEq(assets, maxAssets);
 
         vm.warp(timestamp + 1 days);
 
-        uint256 minAssets = assets;
+        uint256 minAssets = assets + 1;
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Redeem_Exceeded.selector, minAssets + 1, assets)
+            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Redeem_Exceeded.selector, minAssets, assets)
         );
-        vault.safeRedeem(shares, minAssets + 1, user1, user1);
+        vault.safeRedeem(shares, minAssets, user1, user1);
         vm.stopPrank();
     }
 
     function test_ClaimYield() public {
-        uint256 assetsAmount = asset.balanceOf(user1);
-        uint256 minShares = assetsAmount;
+        uint256 assets = asset.balanceOf(user1);
+        uint256 minShares = assets;
 
         vm.startPrank(user1);
-        asset.approve(address(vault), assetsAmount);
-        vault.safeDeposit(assetsAmount, minShares, user1);
+        asset.approve(address(vault), assets);
+        vault.safeDeposit(assets, minShares, user1);
 
         vm.warp(1 days);
 

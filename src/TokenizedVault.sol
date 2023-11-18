@@ -36,7 +36,7 @@ contract TokenizedVault is ERC4626 {
     function safeMint(uint256 shares, uint256 maxAssets, address receiver) public returns (uint256) {
         uint256 assets = super.mint(shares, receiver);
 
-        if (maxAssets > assets) revert TokenizedVault_Mint_Exceeded(maxAssets, shares);
+        if (assets > maxAssets) revert TokenizedVault_Mint_Exceeded(maxAssets, assets);
 
         _deposits[receiver] = block.timestamp;
 
@@ -66,7 +66,7 @@ contract TokenizedVault is ERC4626 {
 
         uint256 assets = super.redeem(shares, receiver, owner);
 
-        if (assets < minAssets) revert TokenizedVault_Redeem_Exceeded(minAssets, shares);
+        if (assets < minAssets) revert TokenizedVault_Redeem_Exceeded(minAssets, assets);
 
         return (assets, yieldAmount);
     }
@@ -102,5 +102,9 @@ contract TokenizedVault is ERC4626 {
 
     function yield() public view returns (address) {
         return address(_yield);
+    }
+
+    function _decimalsOffset() internal pure override returns (uint8) {
+        return 3;
     }
 }

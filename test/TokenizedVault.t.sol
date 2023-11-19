@@ -3,11 +3,11 @@ pragma solidity 0.8.21;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {TokenizedVault} from "../src/TokenizedVault.sol";
+import {TokenizedVaultUpgradeable} from "../src/TokenizedVaultUpgradeable.sol";
 import {AssetToken} from "../src/mock/AssetToken.sol";
 import {YieldToken} from "../src/mock/YieldToken.sol";
 
-contract TokenizedVaultTest is Test {
+contract TokenizedVaultUpgradeableTest is Test {
     string public constant VAULT_NAME = "Georgi Vault Dai"; // Share's token `name`
     string public constant ASSET_NAME = "Dai"; // Asset's token `name`
     string public constant YIELD_NAME = "Georgi Token";
@@ -16,7 +16,7 @@ contract TokenizedVaultTest is Test {
     string public constant YIELD_SYMBOL = "GT";
     AssetToken public asset;
     YieldToken public yield;
-    TokenizedVault public vault;
+    TokenizedVaultUpgradeable public vault;
     address owner = address(111);
     address user1 = address(222);
     address user2 = address(333);
@@ -25,7 +25,8 @@ contract TokenizedVaultTest is Test {
         vm.startPrank(owner);
         asset = new AssetToken(ASSET_NAME, ASSET_SYMBOL);
         yield = new YieldToken(YIELD_NAME, YIELD_SYMBOL);
-        vault = new TokenizedVault(VAULT_NAME, VAULT_SYMBOL, IERC20(asset), address(yield));
+        vault = new TokenizedVaultUpgradeable();
+        vault.initialize(VAULT_NAME, VAULT_SYMBOL, IERC20(asset), address(yield));
         asset.transfer(user1, 1_000 ether);
         asset.transfer(user2, 1_000 ether);
         yield.transfer(address(vault), 5_000 ether);
@@ -71,7 +72,9 @@ contract TokenizedVaultTest is Test {
         asset.approve(address(vault), assets);
         vm.expectRevert(
             abi.encodeWithSelector(
-                TokenizedVault.TokenizedVault_Deposit_Exceeded.selector, minShares, minShares - 1_000
+                TokenizedVaultUpgradeable.TokenizedVaultUpgradeable_Deposit_Exceeded.selector,
+                minShares,
+                minShares - 1_000
             )
         );
         vault.safeDeposit(assets - 1, minShares, user1);
@@ -101,7 +104,9 @@ contract TokenizedVaultTest is Test {
         vm.startPrank(user1);
         asset.approve(address(vault), maxAssets);
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Mint_Exceeded.selector, maxAssets - 1, maxAssets)
+            abi.encodeWithSelector(
+                TokenizedVaultUpgradeable.TokenizedVaultUpgradeable_Mint_Exceeded.selector, maxAssets - 1, maxAssets
+            )
         );
         vault.safeMint(shares, maxAssets - 1, user1);
         vm.stopPrank();
@@ -144,7 +149,9 @@ contract TokenizedVaultTest is Test {
 
         uint256 maxShares = shares - 1; // 999_999
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Withdraw_Exceeded.selector, maxShares, maxShares)
+            abi.encodeWithSelector(
+                TokenizedVaultUpgradeable.TokenizedVaultUpgradeable_Withdraw_Exceeded.selector, maxShares, shares
+            )
         );
         vault.safeWithdraw(assets, maxShares, user1, user1);
         vm.stopPrank();
@@ -189,7 +196,9 @@ contract TokenizedVaultTest is Test {
 
         uint256 minAssets = assets + 1;
         vm.expectRevert(
-            abi.encodeWithSelector(TokenizedVault.TokenizedVault_Redeem_Exceeded.selector, minAssets, assets)
+            abi.encodeWithSelector(
+                TokenizedVaultUpgradeable.TokenizedVaultUpgradeable_Redeem_Exceeded.selector, minAssets, assets
+            )
         );
         vault.safeRedeem(shares, minAssets, user1, user1);
         vm.stopPrank();
@@ -211,7 +220,7 @@ contract TokenizedVaultTest is Test {
         vm.warp(2 days);
 
         vm.prank(user2);
-        vm.expectRevert(TokenizedVault.TokenizedVault_Unauthorized.selector);
+        vm.expectRevert(TokenizedVaultUpgradeable.TokenizedVaultUpgradeable_Unauthorized.selector);
         vault.claimYield(user1);
 
         vm.prank(user1);

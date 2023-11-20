@@ -3,9 +3,9 @@ pragma solidity 0.8.21;
 
 import {Test, console2} from "forge-std/Test.sol";
 import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import {TokenizedVaultUpgradeable} from "../src/TokenizedVaultUpgradeable.sol";
-import {AssetToken} from "../src/mock/AssetToken.sol";
-import {YieldToken} from "../src/mock/YieldToken.sol";
+import {TokenizedVaultUpgradeable} from "../../src/TokenizedVaultUpgradeable.sol";
+import {AssetToken} from "../../src/mock/AssetToken.sol";
+import {YieldToken} from "../../src/mock/YieldToken.sol";
 
 contract TokenizedVaultUpgradeableTest is Test {
     string public constant VAULT_NAME = "Georgi Vault Dai"; // Share's token `name`
